@@ -13,7 +13,8 @@ defmodule MinimalServer.Application do
       Plug.Cowboy.child_spec(
         scheme: :http,
         plug: MinimalServer.Endpoint,
-        options: [port: 4001]
+        # Set the port per environment, see ./config/MIX_ENV.exs
+        options: [port: Application.get_env(:minimal_server, :port)]
       )
     ]
 
