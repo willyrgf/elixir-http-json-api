@@ -25,4 +25,37 @@ defmodule MinimalServer.Endpoint do
   get "/ping" do
     send_resp(conn, 200, "pong!")
   end
+
+  # Handle incoming events, if the payload is the right shape, process the
+  # event, otherwise return an error
+  post "/events" do
+    {status, body} = 
+      case conn.body_params do
+        %{"events" => events} -> {200, process_events(events)}
+        _ -> {422, missing_events()}
+      end
+
+    send_resp(conn, status, body)
+  end
+
+  defp process_events(events) when is_list(events) do
+    # Do some processing on a list of events
+    Poison.encode!(%{response: "received events!"})
+  end
+
+  defp process_events(_) do
+    # If we can't process anything, let them know
+    Poison.encode!(%{response: "please send some events!"})
+  end
+
+  defp missing_events do
+    Poison.encode!(%{error: "expected payload: { 'events': [...] }"})
+  end
+
+  # A catchall route, 'match' will match no matter the request method,
+  # so a response is always returned, even if there is no route to match.
+  match _ do 
+    send_resp(conn, 404, "ooops... nothing here")
+  end
+
 end
